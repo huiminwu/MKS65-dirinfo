@@ -27,21 +27,22 @@ int main()
 			printf("Directory");
     	} else if(entry->d_type == 8) {
             numFiles++;
+            printf("File");
         }
 
         printf("\n");
 		entry = readdir(d);
 	}
-
-    char ** arrDirs = malloc(numDirs*sizeof(char));
-    char ** arrFiles = malloc(numFiles*sizeof(char));
+    
+    char ** arrDirs = malloc(numDirs * sizeof(char*));
+    char ** arrFiles = malloc(numFiles * sizeof(char*));
 
     rewinddir(d);
     int di = 0;
     int fi = 0;
+    entry = readdir(d);
 
     while(entry) {
-       
         if(entry->d_type == 4) {
             arrDirs[di] = entry->d_name;
             di++; 
@@ -49,11 +50,22 @@ int main()
             arrFiles[fi] = entry->d_name;
             fi++;
         }
+        entry = readdir(d);
     }
      
+    printf("PRINTING CONTENTS OF FILEs: \n");
+    int i;
+    for(i = 0; i < numFiles; i++) {
+        printf("%s\n", *arrFiles); //odd that arrFiles[i] only prints every other
+        arrFiles++;
+    }
+
+    printf("PRINTING CONTENTS OF DIR: \n");
+    for(i = 0; i < numDirs; i++) {
+        printf("%s\n", *arrDirs);
+        arrDirs++;
+    }
 
 	closedir(d);
-
-
 	return 0;
 }
