@@ -21,7 +21,7 @@ int main() {
 
 	while(entry) {
 
-        struct stat * stbf = malloc(sizeof(struct stat *));
+        struct stat * stbf = malloc(sizeof(struct stat));
 
         char * path = entry->d_name;
 
@@ -32,10 +32,10 @@ int main() {
     	} else if(entry->d_type == 8) {
             int s = stbf->st_size;
             totsize += s;
-            free(stbf);
             numFiles++;
         }
         
+        free(stbf);
         entry = readdir(d);
 	}
 
@@ -66,7 +66,7 @@ int main() {
         } else if(entry->d_type == 8) {
             arrFiles[fi] = entry->d_name;
 
-            struct stat * stbf = malloc(sizeof(struct stat *));
+            struct stat * stbf = malloc(sizeof(struct stat));
 
             char * path = entry->d_name;
 
