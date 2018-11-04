@@ -23,23 +23,23 @@ int main() {
 
         struct stat * stbf = malloc(sizeof(struct stat *));
 
-        char * path = malloc(sizeof(entry->d_name));
-        path = entry->d_name;
+        char * path = entry->d_name;
 
         stat(path, stbf);
 
 		if(entry->d_type == 4) {
             numDirs++;
     	} else if(entry->d_type == 8) {
-            numFiles++;
             int s = stbf->st_size;
             totsize += s;
             free(stbf);
+            numFiles++;
         }
         
-		entry = readdir(d);
+        entry = readdir(d);
 	}
 
+    printf("Total Directory Size: ");
     if(totsize > 1000000000) {
         printf("%lf GB\n", totsize / 1000000000.0);
     } else if (totsize > 1000000) {
@@ -56,6 +56,7 @@ int main() {
     rewinddir(d);
     int di = 0;
     int fi = 0;
+    int fileSizes[numFiles];
     entry = readdir(d);
 
     while(entry) {
@@ -64,24 +65,42 @@ int main() {
             di++; 
         } else if(entry->d_type == 8) {
             arrFiles[fi] = entry->d_name;
+
+            struct stat * stbf = malloc(sizeof(struct stat *));
+
+            char * path = entry->d_name;
+
+            stat(path, stbf);
+
+            fileSizes[fi] = stbf->st_size;
+
+            free(stbf);
             fi++;
         }
         entry = readdir(d);
     }
 
+    printf("\n");
+
     int i;
     printf("Directories: \n");
     for(i = 0; i < numDirs; i++) {
-        printf("\t%s\n", *arrDirs);
-        arrDirs++;
+        printf("\t%s\n", arrDirs[i]);
     }
+
+    free(arrDirs);
+
+    printf("\n");
     
     printf("Files: \n");
     
     for(i = 0; i < numFiles; i++) {
-        printf("\t%s\n", *arrFiles); //odd that arrFiles[i] only prints every other
-        arrFiles++;
+        printf("%d \t %s\n", fileSizes[i], arrFiles[i]); 
     }
+
+    printf("\n");
+
+    free(arrFiles);
     
 	closedir(d);
 	return 0;
