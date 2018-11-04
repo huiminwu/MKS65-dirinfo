@@ -4,8 +4,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-int main()
-{
+int main() {
 	
 	DIR * d;
 
@@ -15,24 +14,41 @@ int main()
 
     int numFiles = 0;
 
+    int totsize;
+
+
 	struct dirent * entry = readdir(d);
 
 	while(entry) {
 
-		printf("%s : ", entry->d_name);
+        struct stat * stbf = malloc(sizeof(struct stat *));
 
+        char * path = malloc(sizeof(entry->d_name));
+        path = entry->d_name;
+
+        stat(path, stbf);
 
 		if(entry->d_type == 4) {
             numDirs++;
-			printf("Directory");
     	} else if(entry->d_type == 8) {
             numFiles++;
-            printf("File");
+            int s = stbf->st_size;
+            totsize += s;
+            free(stbf);
         }
-
-        printf("\n");
+        
 		entry = readdir(d);
 	}
+
+    if(totsize > 1000000000) {
+        printf("%lf GB\n", totsize / 1000000000.0);
+    } else if (totsize > 1000000) {
+        printf("%lf MB\n", totsize/1000000.0);
+    } else if (totsize > 1000) {
+        printf("%lf KB\n", totsize/1000.0);
+    } else {
+        printf("%d B\n", totsize);
+    }
     
     char ** arrDirs = malloc(numDirs * sizeof(char*));
     char ** arrFiles = malloc(numFiles * sizeof(char*));
@@ -52,20 +68,21 @@ int main()
         }
         entry = readdir(d);
     }
-     
-    printf("PRINTING CONTENTS OF FILEs: \n");
-    int i;
-    for(i = 0; i < numFiles; i++) {
-        printf("%s\n", *arrFiles); //odd that arrFiles[i] only prints every other
-        arrFiles++;
-    }
 
-    printf("PRINTING CONTENTS OF DIR: \n");
+    int i;
+    printf("Directories: \n");
     for(i = 0; i < numDirs; i++) {
-        printf("%s\n", *arrDirs);
+        printf("\t%s\n", *arrDirs);
         arrDirs++;
     }
-
+    
+    printf("Files: \n");
+    
+    for(i = 0; i < numFiles; i++) {
+        printf("\t%s\n", *arrFiles); //odd that arrFiles[i] only prints every other
+        arrFiles++;
+    }
+    
 	closedir(d);
 	return 0;
 }
