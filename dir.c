@@ -14,44 +14,93 @@ void dir(char * path){
 
     int numFiles = 0;
 
+    int totsize;
+
+
 	struct dirent * entry = readdir(d);
 
 	while(entry) {
 
-		printf("%s : ", entry->d_name);
+        struct stat * stbf = malloc(sizeof(struct stat));
 
+        char * path = entry->d_name;
+
+        stat(path, stbf);
 
 		if(entry->d_type == 4) {
             numDirs++;
-			printf("Directory");
     	} else if(entry->d_type == 8) {
+            int s = stbf->st_size;
+            totsize += s;
             numFiles++;
         }
-
-        printf("\n");
-		entry = readdir(d);
+        
+        free(stbf);
+        entry = readdir(d);
 	}
 
-    char ** arrDirs = malloc(numDirs*sizeof(char));
-    char ** arrFiles = malloc(numFiles*sizeof(char));
+    printf("Total Directory Size: ");
+    if(totsize > 1000000000) {
+        printf("%lf GB\n", totsize / 1000000000.0);
+    } else if (totsize > 1000000) {
+        printf("%lf MB\n", totsize/1000000.0);
+    } else if (totsize > 1000) {
+        printf("%lf KB\n", totsize/1000.0);
+    } else {
+        printf("%d B\n", totsize);
+    }
+    
+    char ** arrDirs = malloc(numDirs * sizeof(char*));
+    char ** arrFiles = malloc(numFiles * sizeof(char*));
 
     rewinddir(d);
     int di = 0;
     int fi = 0;
+    int fileSizes[numFiles];
+    entry = readdir(d);
 
     while(entry) {
-       
         if(entry->d_type == 4) {
             arrDirs[di] = entry->d_name;
             di++; 
         } else if(entry->d_type == 8) {
             arrFiles[fi] = entry->d_name;
+
+            struct stat * stbf = malloc(sizeof(struct stat));
+
+            char * path = entry->d_name;
+
+            stat(path, stbf);
+
+            fileSizes[fi] = stbf->st_size;
+
+            free(stbf);
             fi++;
         }
+        entry = readdir(d);
     }
-     
 
+    printf("\n");
+
+    int i;
+    printf("Directories: \n");
+    for(i = 0; i < numDirs; i++) {
+        printf("\t%s\n", arrDirs[i]);
+    }
+
+    free(arrDirs);
+
+    printf("\n");
+    
+    printf("Files: \n");
+    
+    for(i = 0; i < numFiles; i++) {
+        printf("%d \t %s\n", fileSizes[i], arrFiles[i]); 
+    }
+
+    printf("\n");
+
+    free(arrFiles);
+    
 	closedir(d);
 }
-
-
