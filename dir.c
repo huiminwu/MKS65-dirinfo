@@ -4,12 +4,11 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-int main()
-{
+void dir(char * path){
 	
 	DIR * d;
 
-	d = opendir("./");
+	d = opendir(path);
 
     int numDirs = 0;
 
@@ -53,7 +52,6 @@ int main()
      
 
 	closedir(d);
-
-
-	return 0;
 }
+
+
