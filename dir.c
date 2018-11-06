@@ -3,10 +3,16 @@
 #include <dirent.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <errno.h>
 
-void dir(char * path){
+int dir(char * path){
 	
 	DIR * d;
+
+    if (!opendir(path)) {
+        perror("Path failed");
+        return 0;
+    }
 
 	d = opendir(path);
 
@@ -39,7 +45,7 @@ void dir(char * path){
         entry = readdir(d);
 	}
 
-    printf("Total Directory Size: ");
+    printf("\nTotal Directory Size: ");
     if(totsize > 1000000000) {
         printf("%lf GB\n", totsize / 1000000000.0);
     } else if (totsize > 1000000) {
@@ -103,4 +109,6 @@ void dir(char * path){
     free(arrFiles);
     
 	closedir(d);
+
+    return 0;
 }

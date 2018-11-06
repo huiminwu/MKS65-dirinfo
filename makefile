@@ -9,3 +9,7 @@ input.o: dir.c input.c
 
 run:
 	./Dir
+
+clean:
+	rm *.o
+	rm Dir
