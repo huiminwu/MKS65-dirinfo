@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <dirent.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>
@@ -20,18 +21,22 @@ int dir(char * path){
 
     int numFiles = 0;
 
-    int totsize;
-
+    int totsize = 0;
 
 	struct dirent * entry = readdir(d);
 
 	while(entry) {
 
         struct stat * stbf = malloc(sizeof(struct stat));
+        char * pathfile = malloc(sizeof(entry->d_name) + sizeof(path) + sizeof("/"));
+        strcpy(pathfile, path);
+        if(path[strlen(path) - 1] != '/') {
+            strcat(pathfile, "/");
+        }
+        strcat(pathfile, entry->d_name);
+        
 
-        char * path = entry->d_name;
-
-        stat(path, stbf);
+        stat(pathfile, stbf);
 
 		if(entry->d_type == 4) {
             numDirs++;
@@ -42,6 +47,7 @@ int dir(char * path){
         }
         
         free(stbf);
+        free(pathfile);
         entry = readdir(d);
 	}
 
@@ -59,10 +65,13 @@ int dir(char * path){
     char ** arrDirs = malloc(numDirs * sizeof(char*));
     char ** arrFiles = malloc(numFiles * sizeof(char*));
 
+    char permissions[8][4] = {"---","--x","-w-","-wx","r--","r-x","rw-","rwx"};
+
     rewinddir(d);
     int di = 0;
     int fi = 0;
     int fileSizes[numFiles];
+    char * permOfFiles[numFiles];
     entry = readdir(d);
 
     while(entry) {
@@ -73,14 +82,27 @@ int dir(char * path){
             arrFiles[fi] = entry->d_name;
 
             struct stat * stbf = malloc(sizeof(struct stat));
-
-            char * path = entry->d_name;
-
-            stat(path, stbf);
+            char * pathfile = malloc(sizeof(entry->d_name) + sizeof(path) + sizeof("/"));
+            strcpy(pathfile, path);
+            if(path[strlen(path) - 1] != '/') {
+                strcat(pathfile, "/");
+            }
+            strcat(pathfile, entry->d_name);
+            stat(pathfile, stbf);
 
             fileSizes[fi] = stbf->st_size;
-
+            int totoctal = stbf->st_mode;
+            int uperm = (totoctal/64) % 8; //gets rid of first 6 digs & converts to dec
+            int gperm = (totoctal/8)  % 8; //gets rid of first 3 dig & last 
+            int operm = totoctal      % 8; //gets last 3 dig and converts to dec
+            
+            char * perms = malloc(3*sizeof(permissions[1][1]));
+            strcat(perms, permissions[uperm]);
+            strcat(perms, permissions[gperm]);
+            strcat(perms, permissions[operm]);
+            permOfFiles[fi] = perms;
             free(stbf);
+            free(pathfile);
             fi++;
         }
         entry = readdir(d);
@@ -101,7 +123,8 @@ int dir(char * path){
     printf("Files: \n");
     
     for(i = 0; i < numFiles; i++) {
-        printf("%d \t %s\n", fileSizes[i], arrFiles[i]); 
+        printf("%-10s\t %-10d\t %s\t \n", permOfFiles[i], fileSizes[i], arrFiles[i]); 
+        free(permOfFiles[i]);
     }
 
     printf("\n");
